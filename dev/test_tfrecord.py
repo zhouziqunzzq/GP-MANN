@@ -42,11 +42,15 @@ def _parse_function(example_proto):
         'Dissimilar Question Tokens',
         'Dissimilar Question Tags',
     ])
-    return parsed_features
+    return parsed_features['Dissimilar Question Tokens']
 
 
 # parse Dataset
 dataset = dataset.map(_parse_function)
+# shuffle
+dataset = dataset.shuffle(buffer_size=tf.constant(2048, dtype=tf.int64))
+# pad & batch
+dataset = dataset.padded_batch(10, padded_shapes=[None])
 
 # iterate over Dataset
 for x in dataset.take(1):
