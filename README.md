@@ -9,10 +9,15 @@ using TensorFlow.
 - matplotlib
 
 ## Project structure
-- dev: toys while learning TensorFlow eager execution,
-    MANN implemented with tf.enable_eager_execution()
-    - training: `cd dev && python train.py`
-    - inference: `cd dev && python inference.py`
+- MANN_naive: MANN implemented without any attention
+    - using dummy data to test convergence: `python train_test.py`
+    - training: `python train.py`
+    - inference: `python inference.py`
+    - hyper parameters are read from dev/hyper_params.py
+    
+- MANN_TCA: MANN_naive + TCA(Text-Concept Attention)
+    - training: `python train.py`
+    - inference: `python inference.py`
     - hyper parameters are read from dev/hyper_params.py
     
 ## See also

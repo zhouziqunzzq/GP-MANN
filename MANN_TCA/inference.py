@@ -28,14 +28,30 @@ def main():
     )
 
     # load saved weights
-    model.load_weights(SAVE_FILE)
+    # model.load_weights(SAVE_FILE)
+    model.load_weights(SAVE_BEST_FILE)
+
+    # load word2id
+    word2id = load_word2id()
+
+    # input data
+    e1_text = input("Input exercise 1: ")
+    e2_text = input("Input exercise 2: ")
+
+    # tokenize
+    e1_tokens = tokenize_raw_text_to_id(word2id, e1_text)
+    e2_tokens = tokenize_raw_text_to_id(word2id, e2_text)
+
+    print(e1_tokens)
+    print(e2_tokens)
 
     # data for inference
-    a = np.array([[1711, 4008, 2]], dtype=int)
-    b = np.array([[1711, 4008, 2]], dtype=int)
+    a = np.array([e1_tokens], dtype=int)
+    b = np.array([e2_tokens], dtype=int)
 
     sim_score = model.predict([a, b])
-    print(repr(sim_score))
+    # print(repr(sim_score))
+    print("Similar score: {}".format(sim_score[0][0]))
 
     return
 

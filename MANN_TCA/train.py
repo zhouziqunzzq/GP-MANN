@@ -58,19 +58,18 @@ def triplet_loss(y_true, y_pred):
 def main():
     print("Enable Eager Execution: {}".format(tf.executing_eagerly()))
     # prepare data
-    filenames = ["./tf_data/leetcode_pairwise.tfrecord"]
-    dataset = tf.data.TFRecordDataset(filenames=filenames)
+    dataset = tf.data.TFRecordDataset(filenames=TRAINING_DATA_FILE_LIST)
     dataset = dataset.map(_parse_function)
     dummy_dataset = tf.data.Dataset.from_tensor_slices(tf.constant([0], dtype=tf.int64))
     dataset = dataset.zip(datasets=(dataset, dummy_dataset))
-    dataset = dataset.shuffle(buffer_size=tf.constant(2048, dtype=tf.int64))
+    dataset = dataset.shuffle(buffer_size=tf.constant(SHUFFLE_BUFFER_SIZE, dtype=tf.int64))
     dataset = dataset.repeat()
     dataset = dataset.batch(BATCH_SIZE)
 
     # take a glance at what the dataset looks like
-    # for x in dataset.take(1):
-    #     print(type(x))
-    #     print(repr(x))
+    for x in dataset.take(1):
+        print(type(x))
+        print(repr(x))
 
     # build model
     model = MANNModel(
