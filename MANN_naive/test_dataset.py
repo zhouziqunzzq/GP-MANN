@@ -67,18 +67,18 @@ def main():
     print("Enable Eager Execution: {}".format(tf.executing_eagerly()))
 
     # prepare data
-    dataset_tokens = tf.data.Dataset.from_tensor_slices(([[3615, 3615, 3615, 3615, 3615],
-                                                          [323, 323, 323, 323, 323]])).repeat()
-    dataset_sim_tokens = tf.data.Dataset.from_tensor_slices(([[3615, 3615, 3615, 3615, 3615],
-                                                              [323, 323, 323, 323, 323]])).repeat()
-    dataset_dis_tokens = tf.data.Dataset.from_tensor_slices(([[323, 323, 323, 323, 323],
-                                                              [3615, 3615, 3615, 3615, 3615]])).repeat()
+    dataset = tf.data.TFRecordDataset(filenames=TRAINING_DATA_FILE_LIST) \
+        .prefetch(PREFETCH_SIZE)
 
-    dataset_tokens = dataset_tokens.padded_batch(BATCH_SIZE, padded_shapes=[None])
-    dataset_sim_tokens = dataset_sim_tokens.padded_batch(BATCH_SIZE, padded_shapes=[None])
-    dataset_dis_tokens = dataset_dis_tokens.padded_batch(BATCH_SIZE, padded_shapes=[None])
+    dataset_text = dataset.map(get_parse_function('Text'), num_parallel_calls=CPU_CORES)
+    dataset_sim_text = dataset.map(get_parse_function('Similar Question Text'), num_parallel_calls=CPU_CORES)
+    dataset_dis_text = dataset.map(get_parse_function('Dissimilar Question Text'), num_parallel_calls=CPU_CORES)
 
-    dataset_zipped = tf.data.Dataset.zip((dataset_tokens, dataset_sim_tokens, dataset_dis_tokens))
+    dataset_text = dataset_text.batch(BATCH_SIZE)
+    dataset_sim_text = dataset_sim_text.batch(BATCH_SIZE)
+    dataset_dis_text = dataset_dis_text.batch(BATCH_SIZE)
+
+    dataset_zipped = tf.data.Dataset.zip((dataset_text, dataset_sim_text, dataset_dis_text))
     dataset_merged = dataset_zipped.map(merge_function, num_parallel_calls=CPU_CORES)
 
     dummy_dataset = tf.data.Dataset.from_tensor_slices(tf.constant([0], dtype=tf.int64)) \
@@ -90,69 +90,26 @@ def main():
         .prefetch(PREFETCH_SIZE)
 
     # take a glance at what the dataset looks like
-    # for x in dataset.take(5):
-    #     print(type(x))
-    #     print(repr(x))
+    # sum = 0
+    # cnt = 0
+    # my_max = 0
+    # for x in dataset:
+    #     # print(repr(x))
+    #     inputs, _ = x
+    #     a, b, c = inputs
+    #     print(a.shape[1])
+    #     print(b.shape[1])
+    #     print(c.shape[1])
+    #     target = c.shape[1]
+    #     sum += int(target)
+    #     my_max = max(my_max, target)
+    #     cnt += 1
+    # print(sum / cnt)
+    # print(my_max)
     # return
-
-    # build model
-    model = MANNModel(
-        vocab_size=VOCAB_SIZE,
-        embedding_size=EMBEDDING_SIZE,
-        lstm_units=LSTM_UNITS,
-        dense_units=DENSE_UNITS,
-        training=True,
-    )
-    # model.build(input_shape=[(1, 200), (1, 200), (1, 200)])
-    # model.summary()
-    model.compile(
-        optimizer=tf.keras.optimizers.Adam(learning_rate=LEARNING_RATE, clipnorm=CLIP_NORM),
-        loss=triplet_loss,
-        metrics=[],
-    )
-
-    # load saved weight if checkpoint file exists
-    file_cnt = len([name for name in os.listdir(SAVE_PATH) if os.path.isfile(os.path.join(SAVE_PATH, name))])
-    if file_cnt > 0:
-        print("Loading model from checkpoint file {}".format(SAVE_FILE))
-        model.load_weights(SAVE_FILE)
-    else:
-        print("No checkpoint file found, training from scratch")
-
-    # instantiate callback
-    print_loss_callback = PrintLossCallback()
-
-    # train model
-    history = model.fit(
-        dataset,
-        epochs=100,
-        steps_per_epoch=100,
-        batch_size=None,
-        callbacks=[
-            print_loss_callback,
-            MyModelCheckpoint(
-                filepath=SAVE_FILE,
-                best_filepath=SAVE_BEST_FILE,
-                monitor='loss',
-                verbose=1,
-                save_best_only=False,
-                save_weights_only=True,
-                mode='auto',
-                period=1,
-            )],
-    )
-
-    # save weights
-    model.save_weights(SAVE_FILE)
-
-    # plot loss
-    print(repr(history.history['loss']))
-    plt.plot(history.history['loss'])
-    plt.title("model loss")
-    plt.ylabel("loss")
-    plt.xlabel("epoch")
-    plt.show()
-
+    for x in dataset.take(1):
+        print(type(x))
+        print(repr(x))
     return
 
 

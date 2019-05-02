@@ -11,10 +11,12 @@ UNK_ID = 1
 UNK_TOKEN = "<UNK>"
 
 TRAINING_DATA_FILE_LIST = [
-    './tf_data/leetcode_pairwise.tfrecord',
+    './tf_data/leetcode_pairwise_256.tfrecord',
     # './tf_data/leetcode_pairwise_self_sim.tfrecord',
 ]
 
+CPU_CORES = 4
+PREFETCH_SIZE = 128
 SHUFFLE_BUFFER_SIZE = 5120
 BATCH_SIZE = 64
 

@@ -12,46 +12,9 @@ from callbacks import MyModelCheckpoint, PrintLossCallback
 from mann import MANNModel
 from constants import *
 from hyper_params import *
-from utils import convert_sparse
+from data_utils import load_training_dataset
 
 tf.enable_eager_execution()
-
-
-# define parse functions
-def merge_function(*args):
-    return args
-
-
-def get_parse_function(feature_name: str):
-    assert feature_name in ['Text', 'Tokens', 'Tags', 'Similar Question Text',
-                            'Similar Question Tokens', 'Similar Question Tags',
-                            'Dissimilar Question Text', 'Dissimilar Question Tokens',
-                            'Dissimilar Question Tags']
-
-    def _parse_function(example_proto):
-        features = {
-            'Text': tf.FixedLenFeature(shape=(), dtype=tf.string),
-            'Tokens': tf.VarLenFeature(dtype=tf.int64),
-            'Tags': tf.VarLenFeature(dtype=tf.int64),
-            'Similar Question Text': tf.FixedLenFeature(shape=(), dtype=tf.string),
-            'Similar Question Tokens': tf.VarLenFeature(dtype=tf.int64),
-            'Similar Question Tags': tf.VarLenFeature(dtype=tf.int64),
-            'Dissimilar Question Text': tf.FixedLenFeature(shape=(), dtype=tf.string),
-            'Dissimilar Question Tokens': tf.VarLenFeature(dtype=tf.int64),
-            'Dissimilar Question Tags': tf.VarLenFeature(dtype=tf.int64),
-        }
-        parsed_features = tf.parse_single_example(serialized=example_proto, features=features)
-        convert_sparse(parsed_features, [
-            'Tokens',
-            'Tags',
-            'Similar Question Tokens',
-            'Similar Question Tags',
-            'Dissimilar Question Tokens',
-            'Dissimilar Question Tags',
-        ])
-        return parsed_features[feature_name]
-
-    return _parse_function
 
 
 # custom loss function
@@ -67,27 +30,7 @@ def main():
     print("Enable Eager Execution: {}".format(tf.executing_eagerly()))
 
     # prepare data
-    dataset = tf.data.TFRecordDataset(filenames=TRAINING_DATA_FILE_LIST) \
-        .prefetch(PREFETCH_SIZE)
-
-    dataset_tokens = dataset.map(get_parse_function('Tokens'), num_parallel_calls=CPU_CORES)
-    dataset_sim_tokens = dataset.map(get_parse_function('Similar Question Tokens'), num_parallel_calls=CPU_CORES)
-    dataset_dis_tokens = dataset.map(get_parse_function('Dissimilar Question Tokens'), num_parallel_calls=CPU_CORES)
-
-    dataset_tokens = dataset_tokens.padded_batch(BATCH_SIZE, padded_shapes=[None])
-    dataset_sim_tokens = dataset_sim_tokens.padded_batch(BATCH_SIZE, padded_shapes=[None])
-    dataset_dis_tokens = dataset_dis_tokens.padded_batch(BATCH_SIZE, padded_shapes=[None])
-
-    dataset_zipped = tf.data.Dataset.zip((dataset_tokens, dataset_sim_tokens, dataset_dis_tokens))
-    dataset_merged = dataset_zipped.map(merge_function, num_parallel_calls=CPU_CORES)
-
-    dummy_dataset = tf.data.Dataset.from_tensor_slices(tf.constant([0], dtype=tf.int64)) \
-        .repeat()
-
-    dataset = tf.data.Dataset.zip(datasets=(dataset_merged, dummy_dataset)) \
-        .shuffle(buffer_size=tf.constant(SHUFFLE_BUFFER_SIZE, dtype=tf.int64)) \
-        .repeat() \
-        .prefetch(PREFETCH_SIZE)
+    dataset = load_training_dataset(TRAINING_DATA_FILE_LIST)
 
     # take a glance at what the dataset looks like
     # sum = 0
@@ -100,10 +43,11 @@ def main():
     #     print(a.shape[1])
     #     print(b.shape[1])
     #     print(c.shape[1])
-    #     target = c.shape[1]
+    #     target = a.shape[1]
     #     sum += int(target)
     #     my_max = max(my_max, target)
     #     cnt += 1
+    # print(cnt)
     # print(sum / cnt)
     # print(my_max)
     # return
@@ -123,7 +67,7 @@ def main():
     # model.build(input_shape=[(1, 200), (1, 200), (1, 200)])
     # model.summary()
     model.compile(
-        optimizer=tf.train.AdamOptimizer(learning_rate=LEARNING_RATE),
+        optimizer=tf.keras.optimizers.Adam(learning_rate=LEARNING_RATE, clipnorm=CLIP_NORM),
         loss=triplet_loss,
         metrics=[],
     )

@@ -12,38 +12,9 @@ from callbacks import MyModelCheckpoint, PrintLossCallback
 from mann import MANNModel
 from constants import *
 from hyper_params import *
-from utils import convert_sparse
+from data_utils import load_training_dataset
 
 tf.enable_eager_execution()
-
-
-# define parse functions
-def _parse_function(example_proto):
-    features = {
-        'Text': tf.FixedLenFeature(shape=(), dtype=tf.string),
-        'Tokens': tf.VarLenFeature(dtype=tf.int64),
-        'Tags': tf.VarLenFeature(dtype=tf.int64),
-        'Similar Question Text': tf.FixedLenFeature(shape=(), dtype=tf.string),
-        'Similar Question Tokens': tf.VarLenFeature(dtype=tf.int64),
-        'Similar Question Tags': tf.VarLenFeature(dtype=tf.int64),
-        'Dissimilar Question Text': tf.FixedLenFeature(shape=(), dtype=tf.string),
-        'Dissimilar Question Tokens': tf.VarLenFeature(dtype=tf.int64),
-        'Dissimilar Question Tags': tf.VarLenFeature(dtype=tf.int64),
-    }
-    parsed_features = tf.parse_single_example(serialized=example_proto, features=features)
-    convert_sparse(parsed_features, [
-        'Tokens',
-        'Tags',
-        'Similar Question Tokens',
-        'Similar Question Tags',
-        'Dissimilar Question Tokens',
-        'Dissimilar Question Tags',
-    ])
-    return (
-        parsed_features['Tokens'],
-        parsed_features['Similar Question Tokens'],
-        parsed_features['Dissimilar Question Tokens']
-    )
 
 
 # custom loss function
@@ -57,14 +28,9 @@ def triplet_loss(y_true, y_pred):
 
 def main():
     print("Enable Eager Execution: {}".format(tf.executing_eagerly()))
+
     # prepare data
-    dataset = tf.data.TFRecordDataset(filenames=TRAINING_DATA_FILE_LIST)
-    dataset = dataset.map(_parse_function)
-    dummy_dataset = tf.data.Dataset.from_tensor_slices(tf.constant([0], dtype=tf.int64))
-    dataset = dataset.zip(datasets=(dataset, dummy_dataset))
-    dataset = dataset.shuffle(buffer_size=tf.constant(SHUFFLE_BUFFER_SIZE, dtype=tf.int64))
-    dataset = dataset.repeat()
-    dataset = dataset.batch(BATCH_SIZE)
+    dataset = load_training_dataset(TRAINING_DATA_FILE_LIST)
 
     # take a glance at what the dataset looks like
     for x in dataset.take(1):
