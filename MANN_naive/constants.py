@@ -11,7 +11,7 @@ UNK_ID = 1
 UNK_TOKEN = "<UNK>"
 
 TRAINING_DATA_FILE_LIST = [
-    './tf_data/leetcode_pairwise_256.tfrecord',
+    # './tf_data/leetcode_pairwise_256.tfrecord',
     './tf_data/leetcode_pairwise_self_sim_256.tfrecord',
 ]
 

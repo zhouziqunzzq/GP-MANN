@@ -82,3 +82,38 @@ def load_training_dataset(tfrecord_files: list) -> tf.data.Dataset:
         .prefetch(PREFETCH_SIZE)
 
     return dataset
+
+
+def load_evaluation_dataset(tfrecord_files: list) -> tuple:
+    # prepare data
+    dataset = tf.data.TFRecordDataset(filenames=tfrecord_files) \
+        .prefetch(PREFETCH_SIZE)
+
+    dataset_tokens = dataset.map(get_parse_function('Tokens'), num_parallel_calls=CPU_CORES)
+    dataset_sim_tokens = dataset.map(get_parse_function('Similar Question Tokens'), num_parallel_calls=CPU_CORES)
+    dataset_dis_tokens = dataset.map(get_parse_function('Dissimilar Question Tokens'), num_parallel_calls=CPU_CORES)
+
+    max_length = get_max_length(dataset_tokens, dataset_sim_tokens, dataset_dis_tokens)
+    print("Padding using max length {}".format(max_length))
+    dataset_tokens = dataset_tokens.padded_batch(BATCH_SIZE, padded_shapes=[max_length])
+    dataset_sim_tokens = dataset_sim_tokens.padded_batch(BATCH_SIZE, padded_shapes=[max_length])
+    dataset_dis_tokens = dataset_dis_tokens.padded_batch(BATCH_SIZE, padded_shapes=[max_length])
+
+    dataset_zipped_sim = tf.data.Dataset.zip((dataset_tokens, dataset_sim_tokens))
+    dataset_merged_sim = dataset_zipped_sim.map(merge_function, num_parallel_calls=CPU_CORES)
+
+    dataset_zipped_dis = tf.data.Dataset.zip((dataset_tokens, dataset_dis_tokens))
+    dataset_merged_dis = dataset_zipped_dis.map(merge_function, num_parallel_calls=CPU_CORES)
+
+    dummy_dataset = tf.data.Dataset.from_tensor_slices(tf.constant([0, 0], dtype=tf.int64, shape=(1, 2))) \
+        .repeat()
+
+    # dataset_sim = tf.data.Dataset.zip(datasets=(dataset_merged_sim, dummy_dataset)) \
+    #     .prefetch(PREFETCH_SIZE)
+    # dataset_dis = tf.data.Dataset.zip(datasets=(dataset_merged_dis, dummy_dataset)) \
+    #     .prefetch(PREFETCH_SIZE)
+
+    dataset_sim = dataset_merged_sim.prefetch(PREFETCH_SIZE)
+    dataset_dis = dataset_merged_dis.prefetch(PREFETCH_SIZE)
+
+    return dataset_sim, dataset_dis
