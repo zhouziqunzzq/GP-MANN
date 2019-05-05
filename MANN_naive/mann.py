@@ -59,7 +59,6 @@ class MANNModel(tf.keras.Model):
             return result
 
         training = self.training
-        # print("is training: {}".format(training))
 
         if training:
             print("Building MANN for training...")
@@ -78,6 +77,6 @@ class MANNModel(tf.keras.Model):
         else:
             print("Building MANN for inference...")
             # build inference model
-            # unpack inputs (expecting 2 tensors in trainning mode)
+            # unpack inputs (expecting 2 tensors in inference mode)
             a_tokens, b_tokens = inputs
             return _compute_pair(a_tokens, b_tokens)

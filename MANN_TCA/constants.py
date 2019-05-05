@@ -7,6 +7,8 @@
 
 VOCAB_PATH = './tf_data/word_list.txt'
 VOCAB_SIZE = 4133
+TAG_PATH = './tf_data/tag_list.txt'
+TAG_SIZE = 38
 UNK_ID = 1
 UNK_TOKEN = "<UNK>"
 
@@ -18,7 +20,7 @@ TRAINING_DATA_FILE_LIST = [
 CPU_CORES = 4
 PREFETCH_SIZE = 128
 SHUFFLE_BUFFER_SIZE = 5120
-BATCH_SIZE = 64
+BATCH_SIZE = 32
 
 SAVE_PATH = './weights/'
 SAVE_FILE = SAVE_PATH + 'MANN'

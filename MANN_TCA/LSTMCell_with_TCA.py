@@ -81,6 +81,9 @@ class LSTMCellWithTCA(tf.keras.layers.LSTMCell):
             trainable=True,
         )
 
+        # need to change input_shape for LSTMCell super class here!
+        input_shape = (input_shape[0], self.feature_dim + input_dim)
+
         super(LSTMCellWithTCA, self).build(input_shape)
 
     # Note: constants are used to pass features to Attention
@@ -88,35 +91,21 @@ class LSTMCellWithTCA(tf.keras.layers.LSTMCell):
         u = constants[0]
         w_t = tf.expand_dims(inputs, axis=1)
         h_tm1 = tf.expand_dims(states[0], axis=1)
-        # print(repr(inputs))
-        # print(inputs.shape)
-        # print(type(u))
-        # print(repr(u))
-        # print(repr(h_tm1))
 
         # TCA(Text-Concept Attention)
-
-        # tile w_t and h_tm1
         w_t = tf.tile(w_t, multiples=[1, u.shape[1], 1])
         h_tm1 = tf.tile(h_tm1, multiples=[1, u.shape[1], 1])
-        # print(repr(w_t))
-        # print(repr(h_tm1))
-
-        # concat u, w_t, h_tml
         x = tf.concat([u, w_t, h_tm1], axis=-1)
-        # print(repr(x))
-
-        # tensordot with W_ac
         x = tf.tensordot(x, self.W_ac, axes=[[2], [0]])
-        # print(repr(x))
-
         x = tf.tanh(x)
-
-        # tensordot with V_ac
         scores = tf.tensordot(x, self.V_ac, axes=[[2], [0]])
-        print(repr(scores))
+        scores = tf.nn.softmax(scores, axis=1)
+        context = tf.reduce_sum(scores * u, axis=1)
 
-        return super(LSTMCellWithTCA, self).call(inputs, states, training)
+        concat_inputs = tf.concat([inputs, context], axis=-1)
+        # print(repr(concat_inputs))
+
+        return super(LSTMCellWithTCA, self).call(concat_inputs, states, training)
 
     def get_config(self):
         base_config = super(LSTMCellWithTCA, self).get_config()

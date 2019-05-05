@@ -47,6 +47,14 @@ def get_parse_function(feature_name: str):
     return _parse_function
 
 
+def get_max_length(*args) -> int:
+    max_length = 0
+    for dataset in args:
+        for s in dataset:
+            max_length = max(max_length, len(s))
+    return max_length
+
+
 def load_training_dataset(tfrecord_files: list) -> tf.data.Dataset:
     # prepare data
     dataset = tf.data.TFRecordDataset(filenames=tfrecord_files) \
@@ -56,9 +64,11 @@ def load_training_dataset(tfrecord_files: list) -> tf.data.Dataset:
     dataset_sim_tokens = dataset.map(get_parse_function('Similar Question Tokens'), num_parallel_calls=CPU_CORES)
     dataset_dis_tokens = dataset.map(get_parse_function('Dissimilar Question Tokens'), num_parallel_calls=CPU_CORES)
 
-    dataset_tokens = dataset_tokens.padded_batch(BATCH_SIZE, padded_shapes=[None])
-    dataset_sim_tokens = dataset_sim_tokens.padded_batch(BATCH_SIZE, padded_shapes=[None])
-    dataset_dis_tokens = dataset_dis_tokens.padded_batch(BATCH_SIZE, padded_shapes=[None])
+    max_length = get_max_length(dataset_tokens, dataset_sim_tokens, dataset_dis_tokens)
+    print("Padding using max length {}".format(max_length))
+    dataset_tokens = dataset_tokens.padded_batch(BATCH_SIZE, padded_shapes=[max_length])
+    dataset_sim_tokens = dataset_sim_tokens.padded_batch(BATCH_SIZE, padded_shapes=[max_length])
+    dataset_dis_tokens = dataset_dis_tokens.padded_batch(BATCH_SIZE, padded_shapes=[max_length])
 
     dataset_zipped = tf.data.Dataset.zip((dataset_tokens, dataset_sim_tokens, dataset_dis_tokens))
     dataset_merged = dataset_zipped.map(merge_function, num_parallel_calls=CPU_CORES)

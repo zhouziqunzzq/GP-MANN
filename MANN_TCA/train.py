@@ -33,14 +33,17 @@ def main():
     dataset = load_training_dataset(TRAINING_DATA_FILE_LIST)
 
     # take a glance at what the dataset looks like
-    for x in dataset.take(1):
-        print(type(x))
-        print(repr(x))
+    # for x in dataset.take(1):
+    #     print(type(x))
+    #     print(repr(x))
+    # return
 
     # build model
     model = MANNModel(
         vocab_size=VOCAB_SIZE,
-        embedding_size=EMBEDDING_SIZE,
+        embedding_size_vocab=EMBEDDING_SIZE_VOCAB,
+        tag_size=TAG_SIZE,
+        embedding_size_tag=EMBEDDING_SIZE_TAG,
         lstm_units=LSTM_UNITS,
         dense_units=DENSE_UNITS,
         training=True,
@@ -48,9 +51,9 @@ def main():
     # model.build(input_shape=[(1, 200), (1, 200), (1, 200)])
     # model.summary()
     model.compile(
-        optimizer=tf.train.AdamOptimizer(learning_rate=LEARNING_RATE),
+        optimizer=tf.keras.optimizers.Adam(learning_rate=LEARNING_RATE, clipnorm=CLIP_NORM),
         loss=triplet_loss,
-        metrics=['accuracy'],
+        metrics=[],
     )
 
     # load saved weight if checkpoint file exists
