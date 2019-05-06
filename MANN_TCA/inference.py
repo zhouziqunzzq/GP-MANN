@@ -29,31 +29,33 @@ def main():
 
     # load saved weights
     # model.load_weights(SAVE_FILE)
-    model.load_weights(SAVE_BEST_FILE)
+    model.load_weights(SAVE_BEST_FILE).expect_partial()
 
     # load word2id
     word2id = load_word2id()
 
-    # input data
-    e1_text = input("Input exercise 1: ")
-    e2_text = input("Input exercise 2: ")
+    while True:
+        try:
+            # input data
+            e1_text = input("Input exercise 1: ")
+            e2_text = input("Input exercise 2: ")
 
-    # tokenize
-    e1_tokens = tokenize_raw_text_to_id(word2id, e1_text)
-    e2_tokens = tokenize_raw_text_to_id(word2id, e2_text)
+            # tokenize
+            e1_tokens = tokenize_raw_text_to_id(word2id, e1_text)
+            e2_tokens = tokenize_raw_text_to_id(word2id, e2_text)
 
-    print(e1_tokens)
-    print(e2_tokens)
+            print(e1_tokens)
+            print(e2_tokens)
 
-    # data for inference
-    a = np.array([e1_tokens], dtype=int)
-    b = np.array([e2_tokens], dtype=int)
+            # data for inference
+            a = np.array([e1_tokens], dtype=int)
+            b = np.array([e2_tokens], dtype=int)
 
-    sim_score = model.predict([a, b])
-    # print(repr(sim_score))
-    print("Similar score: {}".format(sim_score[0][0]))
-
-    return
+            sim_score = model.predict([a, b])
+            # print(repr(sim_score))
+            print("Similar score: {}".format(sim_score[0][0]))
+        except KeyboardInterrupt:
+            return
 
 
 if __name__ == '__main__':
