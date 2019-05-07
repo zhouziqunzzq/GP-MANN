@@ -104,4 +104,4 @@ class MANNModel(tf.keras.Model):
             # build inference model
             # unpack inputs (expecting 4 tensors in inference mode)
             a_tokens, a_tags, b_tokens, b_tags = inputs
-            return _compute_pair(a_tokens, b_tokens)
+            return _compute_pair(a_tokens, a_tags, b_tokens, b_tags)
