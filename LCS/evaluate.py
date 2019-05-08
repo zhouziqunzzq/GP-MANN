@@ -3,7 +3,7 @@
 # @File  : evaluate.py
 # @Author: harry
 # @Date  : 2019/5/5 下午8:07
-# @Desc  : Evaluate MANN
+# @Desc  : Evaluate LCS
 
 import tensorflow as tf
 import numpy as np
@@ -39,45 +39,36 @@ def evaluate():
     dataset_sim, dataset_dis = load_evaluation_dataset(TRAINING_DATA_FILE_LIST)
 
     # evaluation
-    pass_cnt = 0
-    pass_cnt_1 = 0
-    pass_cnt_2 = 0
-    pass_cnt_3 = 0
-    pass_cnt_4 = 0
     total = 0
+    diff_list = []
     for data_sim, data_dis in zip(dataset_sim, dataset_dis):
         result_sim, result_dis = evaluate_step(data_sim, data_dis)
 
         anchor_len, sim_len = get_seq_length(data_sim)
         _, dis_len = get_seq_length(data_dis)
 
-        sim_score = len(result_sim) / anchor_len
-        dis_score = len(result_dis) / anchor_len
+        sim_score = len(result_sim) / max(anchor_len, sim_len)
+        dis_score = len(result_dis) / max(anchor_len, dis_len)
         diff = sim_score - dis_score
 
-        # print(len(result_sim), len(result_dis))
-        # print(get_seq_length(data_sim))
-        # print(get_seq_length(data_dis))
-        # print(sim_score, dis_score)
-        # print(sim_score - dis_score)
-        # return
-
-        pass_cnt += int(diff > 0.5)
-        pass_cnt_1 += int(diff > 0.4)
-        pass_cnt_2 += int(diff > 0.3)
-        pass_cnt_3 += int(diff > 0.2)
-        pass_cnt_4 += int(diff > 0.1)
-
+        diff_list.append(diff)
         total += 1
 
         print(".", end='', flush=True)
 
     print()
+    diff_array = np.array(diff_list, dtype=float)
+
+    pass_cnt = np.sum(diff_array >= 0.5)
     print("acc(MARGIN=0.5): {} ({} / {})".format(pass_cnt / total, pass_cnt, total))
-    print("acc(MARGIN=0.4): {} ({} / {})".format(pass_cnt_1 / total, pass_cnt, total))
-    print("acc(MARGIN=0.3): {} ({} / {})".format(pass_cnt_2 / total, pass_cnt, total))
-    print("acc(MARGIN=0.2): {} ({} / {})".format(pass_cnt_3 / total, pass_cnt, total))
-    print("acc(MARGIN=0.1): {} ({} / {})".format(pass_cnt_4 / total, pass_cnt, total))
+    pass_cnt = np.sum(diff_array >= 0.4)
+    print("acc(MARGIN=0.5): {} ({} / {})".format(pass_cnt / total, pass_cnt, total))
+    pass_cnt = np.sum(diff_array >= 0.3)
+    print("acc(MARGIN=0.5): {} ({} / {})".format(pass_cnt / total, pass_cnt, total))
+    pass_cnt = np.sum(diff_array >= 0.2)
+    print("acc(MARGIN=0.5): {} ({} / {})".format(pass_cnt / total, pass_cnt, total))
+    pass_cnt = np.sum(diff_array >= 0.1)
+    print("acc(MARGIN=0.5): {} ({} / {})".format(pass_cnt / total, pass_cnt, total))
 
     return
 

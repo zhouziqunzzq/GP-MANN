@@ -11,6 +11,7 @@ TAG_PATH = './tf_data/tag_list.txt'
 TAG_SIZE = 38
 UNK_ID = 1
 UNK_TOKEN = "<UNK>"
+PAD_TOKEN = "<PAD>"
 
 TRAINING_DATA_FILE_LIST = [
     './tf_data/leetcode_pairwise_256.tfrecord',

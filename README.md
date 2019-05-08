@@ -6,7 +6,10 @@ using TensorFlow.
 
 ## PIP dependencies
 - tensorflow (or tensorflow-gpu)
+- sklearn
+- numpy
 - matplotlib
+- lxml
 
 ## Project structure
 - MANN_naive: MANN implemented without any attention
@@ -31,6 +34,11 @@ implemented with CuDNNLSTM
     - constants are read from constants.py
     
 - LCS: Least Common Sub-sequence
+    - inference: `python inference.py`
+    - evaluate: `python evaluate.py`
+    
+- TF-IDF: Term Frequency - Inverse Document Frequency
+    - inference: `python inference.py`
     - evaluate: `python evaluate.py`
     
 ## See also

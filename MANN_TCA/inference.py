@@ -21,7 +21,9 @@ def main():
     # build model
     model = MANNModel(
         vocab_size=VOCAB_SIZE,
-        embedding_size=EMBEDDING_SIZE,
+        embedding_size_vocab=EMBEDDING_SIZE_VOCAB,
+        tag_size=TAG_SIZE,
+        embedding_size_tag=EMBEDDING_SIZE_TAG,
         lstm_units=LSTM_UNITS,
         dense_units=DENSE_UNITS,
         training=False,
@@ -34,24 +36,38 @@ def main():
     # load word2id
     word2id = load_word2id()
 
+    # load tag2id
+    tag2id = load_tag2id()
+
     while True:
         try:
             # input data
             e1_text = input("Input exercise 1: ")
+            e1_raw_tags = input("Input tags for exercise 1: ")
             e2_text = input("Input exercise 2: ")
+            e2_raw_tags = input("Input tags for exercise 2: ")
 
             # tokenize
             e1_tokens = tokenize_raw_text_to_id(word2id, e1_text)
+            e1_tags = tokenize_raw_tags_to_id(tag2id, e1_raw_tags)
             e2_tokens = tokenize_raw_text_to_id(word2id, e2_text)
+            e2_tags = tokenize_raw_tags_to_id(tag2id, e2_raw_tags)
+
+            # pad tags
+            e1_tags, e2_tags = pad_tags(tag2id, e1_tags, e2_tags)
 
             print(e1_tokens)
+            print(e1_tags)
             print(e2_tokens)
+            print(e2_tags)
 
             # data for inference
-            a = np.array([e1_tokens], dtype=int)
-            b = np.array([e2_tokens], dtype=int)
+            a_tokens = np.array([e1_tokens], dtype=int)
+            a_tags = np.array([e1_tags], dtype=int)
+            b_tokens = np.array([e2_tokens], dtype=int)
+            b_tags = np.array([e2_tags], dtype=int)
 
-            sim_score = model.predict([a, b])
+            sim_score = model.predict([a_tokens, a_tags, b_tokens, b_tags])
             # print(repr(sim_score))
             print("Similar score: {}".format(sim_score[0][0]))
         except KeyboardInterrupt:

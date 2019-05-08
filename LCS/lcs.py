@@ -25,6 +25,10 @@ def lcs(x, y):
     return matrix[len(x)][len(y)]
 
 
+def compute_pair(x, y):
+    return len(lcs(x, y)) / max(len(x), len(y))
+
+
 if __name__ == '__main__':
     a = [i for i in range(256)]
     b = [i for i in range(256) if i % 2 == 0]

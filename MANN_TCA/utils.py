@@ -48,6 +48,30 @@ def load_word2id() -> dict:
     return word2id
 
 
+def load_tag2id() -> dict:
+    tag2id = {}
+    tid = 0
+    for t in open(TAG_PATH).readlines():
+        tag2id[t.strip()] = tid
+        tid += 1
+    return tag2id
+
+
+def pad_tags(tag2id: dict, a: list, b: list) -> (list, list):
+    if len(a) == len(b):
+        return a, b
+    # assume len(a) > len(b), so just pad b
+    swapped = False
+    if len(a) < len(b):
+        a, b = b, a
+        swapped = True
+    b = b + ([tag2id[PAD_TOKEN]] * (len(a) - len(b)))
+    if swapped:
+        return b, a
+    else:
+        return a, b
+
+
 def clean_html(raw: str) -> str:
     document = lxml.html.document_fromstring(raw)
     return document.text_content()
@@ -75,3 +99,17 @@ def tokenize_raw_text_to_id(word2id: dict, raw_text: str) -> list:
             tokens.append(word2id[UNK_TOKEN])
 
     return tokens
+
+
+def tokenize_raw_tags_to_id(tag2id: dict, raw_tags: str) -> list:
+    assert len(tag2id) > 0
+
+    tags = []
+    for t in raw_tags.split():
+        t = t.lower()
+        if t in tag2id:
+            tags.append(tag2id[t])
+        else:
+            tags.append(tag2id[PAD_TOKEN])
+
+    return tags
