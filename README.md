@@ -20,6 +20,7 @@ using TensorFlow.
 - MANN_TCA: MANN_naive + TCA(Text-Concept Attention)
     - training: `python train.py`
     - inference: `python inference.py`
+    - evaluate: `python evaluate.py`
     - hyper parameters are read from hyper_params.py
     - constants are read from constants.py
     
@@ -28,6 +29,9 @@ implemented with CuDNNLSTM
     - training: `python train.py`
     - hyper parameters are read from hyper_params.py
     - constants are read from constants.py
+    
+- LCS: Least Common Sub-sequence
+    - evaluate: `python evaluate.py`
     
 ## See also
 - [LeetCode Spider](https://github.com/zhouziqunzzq/GP-leetcode-spider)
