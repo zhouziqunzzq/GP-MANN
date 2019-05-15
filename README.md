@@ -20,6 +20,14 @@ using TensorFlow.
     - hyper parameters are read from hyper_params.py
     - constants are read from constants.py
     
+- MANN_SA: MANN implemented with Similarity Attention
+    - using dummy data to test convergence: `python train_test.py`
+    - training: `python train.py`
+    - inference: `python inference.py`
+    - evaluate: `python evaluate.py`
+    - hyper parameters are read from hyper_params.py
+    - constants are read from constants.py
+    
 - MANN_TCA: MANN_naive + TCA(Text-Concept Attention)
     - training: `python train.py`
     - inference: `python inference.py`
