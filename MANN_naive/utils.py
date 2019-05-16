@@ -6,6 +6,8 @@
 # @Desc  : Utils
 
 import tensorflow as tf
+import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
 import lxml.html
 from constants import *
 from tokenizer import Tokenizer
@@ -39,13 +41,15 @@ def get_pair_example(a: dict, b: dict) -> tf.train.Example:
     )
 
 
-def load_word2id() -> dict:
+def load_word2id() -> (dict, dict):
     word2id = {}
+    id2word = {}
     wid = 0
     for w in open(VOCAB_PATH).readlines():
         word2id[w.strip()] = wid
+        id2word[wid] = w.strip()
         wid += 1
-    return word2id
+    return word2id, id2word
 
 
 def clean_html(raw: str) -> str:
@@ -75,3 +79,20 @@ def tokenize_raw_text_to_id(word2id: dict, raw_text: str) -> list:
             tokens.append(word2id[UNK_TOKEN])
 
     return tokens
+
+
+def plot_attention(attention, s1, s2):
+    fig = plt.figure(figsize=(10, 10))
+    ax = fig.add_subplot(1, 1, 1)
+    psm = ax.matshow(attention, cmap='viridis')
+
+    fig.colorbar(psm)
+
+    font_dict = {'fontsize': 14}
+
+    ax.set_yticklabels([''] + s1, fontdict=font_dict)
+    ax.yaxis.set_major_locator(ticker.MultipleLocator(1))
+    ax.set_xticklabels([''] + s2, fontdict=font_dict, rotation=90)
+    ax.xaxis.set_major_locator(ticker.MultipleLocator(1))
+
+    plt.show()

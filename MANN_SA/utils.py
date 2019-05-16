@@ -7,6 +7,7 @@
 
 import tensorflow as tf
 import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
 import lxml.html
 from constants import *
 from tokenizer import Tokenizer
@@ -97,9 +98,11 @@ def plot_attention(attention, s1, s2):
 
     fig.colorbar(psm)
 
-    fontdict = {'fontsize': 14}
+    font_dict = {'fontsize': 14}
 
-    ax.set_yticklabels([''] + s1, fontdict=fontdict)
-    ax.set_xticklabels([''] + s2, fontdict=fontdict, rotation=90)
+    ax.set_yticklabels([''] + s1, fontdict=font_dict)
+    ax.yaxis.set_major_locator(ticker.MultipleLocator(1))
+    ax.set_xticklabels([''] + s2, fontdict=font_dict, rotation=90)
+    ax.xaxis.set_major_locator(ticker.MultipleLocator(1))
 
     plt.show()

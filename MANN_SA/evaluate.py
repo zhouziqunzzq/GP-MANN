@@ -35,8 +35,8 @@ def evaluate():
     pass_cnt = 0
     total = 0
     for data_sim, data_dis in zip(dataset_sim, dataset_dis):
-        outputs_sim = model.predict(data_sim)
-        outputs_dis = model.predict(data_dis)
+        outputs_sim, _ = model.predict(data_sim)
+        outputs_dis, _ = model.predict(data_dis)
 
         diff = outputs_sim - outputs_dis
         pass_cnt += np.sum(diff >= MARGIN)

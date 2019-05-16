@@ -21,7 +21,7 @@ class MANNModel(tf.keras.Model):
         self.lstm = tf.keras.layers.CuDNNLSTM(
             name="lstm",
             units=lstm_units,
-            return_sequences=False,
+            return_sequences=True,
             return_state=True,
             # unroll=False,
             kernel_regularizer=tf.keras.regularizers.l2(REG_LAMBDA),
@@ -45,18 +45,48 @@ class MANNModel(tf.keras.Model):
         def _get_state(x):
             result = self.embedding(x)
             result = self.lstm(result)
-            return result[1]
+            return result[1], result[0]
+
+        def _compute_sim_attention(h):
+            h1, h2 = h
+
+            a_norm = tf.sqrt(tf.reduce_sum(tf.square(h1), axis=-1))
+            a_norm = tf.expand_dims(a_norm, axis=-1)
+            b_norm = tf.sqrt(tf.reduce_sum(tf.square(h2), axis=-1))
+            b_norm = tf.expand_dims(b_norm, axis=-1)
+
+            norm_matrix = tf.tensordot(a_norm, tf.transpose(b_norm), [[1], [0]])
+
+            dot_matrix = tf.tensordot(h1, tf.transpose(h2), [[1], [0]])
+
+            sim = dot_matrix / norm_matrix
+            return sim
 
         def _compute_pair(a, b):
-            a_state = _get_state(a)
-            b_state = _get_state(b)
+            r_a, h_a = _get_state(a)
+            r_b, h_b = _get_state(b)
+            # r_a.shape == (batch_size, lstm_units)
+            # h_a.shape == (batch_size, seq_a_length, lstm_units)
+            # r_b.shape == (batch_size, lstm_units)
+            # h_b.shape == (batch_size, seq_b_length, lstm_units)
+
+            # Similarity Attention
+            # iterate over batch
+            sim_attention_matrix = tf.map_fn(
+                _compute_sim_attention,
+                elems=(h_a, h_b),
+                dtype=tf.float32
+            )
+            # sim_attention_matrix == (batch_size, seq_a_length, seq_b_length)
+
+            # Similarity Score Layer
             result = tf.keras.layers.concatenate(
-                inputs=[a_state, b_state],
+                inputs=[r_a, r_b],
                 axis=-1,
             )
             result = self.dense1(result)
             result = self.dense2(result)
-            return result
+            return result, sim_attention_matrix
 
         training = self.training
 
@@ -66,9 +96,9 @@ class MANNModel(tf.keras.Model):
             # unpack inputs (expecting 3 tensors in training mode)
             anchor_tokens, pos_tokens, neg_tokens = inputs
             # compute MANN(anchor, pos)
-            anchor_pos = _compute_pair(anchor_tokens, pos_tokens)
+            anchor_pos, _ = _compute_pair(anchor_tokens, pos_tokens)
             # compute MANN(anchor, neg)
-            anchor_neg = _compute_pair(anchor_tokens, neg_tokens)
+            anchor_neg, _ = _compute_pair(anchor_tokens, neg_tokens)
             # return concatenated results for loss computation
             return tf.keras.layers.concatenate(
                 inputs=[anchor_pos, anchor_neg],

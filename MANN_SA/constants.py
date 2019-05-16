@@ -10,11 +10,11 @@ VOCAB_SIZE = 4133
 UNK_ID = 1
 UNK_TOKEN = "<UNK>"
 PAD_TOKEN = "<PAD>"
-SEQ_LENGTH = 16
+SEQ_LENGTH = 32
 
 TRAINING_DATA_FILE_LIST = [
-    # './tf_data/leetcode_pairwise_256.tfrecord',
-    './tf_data/leetcode_pairwise_self_sim_256.tfrecord',
+    './tf_data/leetcode_pairwise_32.tfrecord',
+    # './tf_data/leetcode_pairwise_self_sim_256.tfrecord',
 ]
 
 CPU_CORES = 4
