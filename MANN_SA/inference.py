@@ -32,7 +32,7 @@ def main():
     model.load_weights(SAVE_BEST_FILE).expect_partial()
 
     # load word2id
-    word2id = load_word2id()
+    word2id, id2word = load_word2id()
 
     while True:
         try:
@@ -41,10 +41,10 @@ def main():
             e2_text = input("Input exercise 2: ")
 
             # tokenize
-            e1_tokens = tokenize_raw_text_to_id(word2id, e1_text)
-            e1_tokens = pad_tokens(word2id, e1_tokens)
-            e2_tokens = tokenize_raw_text_to_id(word2id, e2_text)
-            e2_tokens = pad_tokens(word2id, e2_tokens)
+            e1_tokens_raw = tokenize_raw_text_to_id(word2id, e1_text)
+            e1_tokens = pad_tokens(word2id, e1_tokens_raw)
+            e2_tokens_raw = tokenize_raw_text_to_id(word2id, e2_text)
+            e2_tokens = pad_tokens(word2id, e2_tokens_raw)
 
             print(e1_tokens)
             print(e2_tokens)
@@ -56,7 +56,11 @@ def main():
             sim_score, sim_attention_matrix = model.predict([a, b])
             # print(repr(sim_score))
             print("Similar score: {}".format(sim_score[0][0]))
-            print(repr(sim_attention_matrix))
+            valid_attention = sim_attention_matrix[0][:len(e1_tokens_raw), :len(e2_tokens_raw)]
+            # print(repr(valid_attention))
+            e1_raw = [id2word[w] for w in e1_tokens_raw]
+            e2_raw = [id2word[w] for w in e2_tokens_raw]
+            plot_attention(valid_attention, e1_raw, e2_raw)
         except KeyboardInterrupt:
             return
 
