@@ -10,6 +10,7 @@ import numpy as np
 from lcs import lcs
 from data_utils import load_evaluation_dataset
 from constants import *
+from utils import *
 
 tf.enable_eager_execution()
 
@@ -61,14 +62,26 @@ def evaluate():
 
     pass_cnt = np.sum(diff_array >= 0.5)
     print("acc(MARGIN=0.5): {} ({} / {})".format(pass_cnt / total, pass_cnt, total))
+
+    # plot pie for MARGIN=0.5
+    n1 = pass_cnt
+    n2 = total - pass_cnt
+    p = plot_pie(
+        labels=[u'正确 ({})'.format(n1), u'错误 ({})'.format(n2)],
+        sizes=[n1, n2],
+        colors=['grey', 'black'],
+        explode=[0.1, 0]
+    )
+    p.show()
+
     pass_cnt = np.sum(diff_array >= 0.4)
-    print("acc(MARGIN=0.5): {} ({} / {})".format(pass_cnt / total, pass_cnt, total))
+    print("acc(MARGIN=0.4): {} ({} / {})".format(pass_cnt / total, pass_cnt, total))
     pass_cnt = np.sum(diff_array >= 0.3)
-    print("acc(MARGIN=0.5): {} ({} / {})".format(pass_cnt / total, pass_cnt, total))
+    print("acc(MARGIN=0.3): {} ({} / {})".format(pass_cnt / total, pass_cnt, total))
     pass_cnt = np.sum(diff_array >= 0.2)
-    print("acc(MARGIN=0.5): {} ({} / {})".format(pass_cnt / total, pass_cnt, total))
+    print("acc(MARGIN=0.2): {} ({} / {})".format(pass_cnt / total, pass_cnt, total))
     pass_cnt = np.sum(diff_array >= 0.1)
-    print("acc(MARGIN=0.5): {} ({} / {})".format(pass_cnt / total, pass_cnt, total))
+    print("acc(MARGIN=0.1): {} ({} / {})".format(pass_cnt / total, pass_cnt, total))
 
     return
 

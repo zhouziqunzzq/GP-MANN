@@ -132,7 +132,7 @@ def tokenize_raw_tags_to_id(tag2id: dict, raw_tags: str) -> list:
 def plot_attention(attention, s1, s2):
     fig = plt.figure(figsize=(10, 10))
     ax = fig.add_subplot(1, 1, 1)
-    psm = ax.matshow(attention, cmap='viridis')
+    psm = ax.matshow(attention, cmap='gist_gray')
 
     fig.colorbar(psm)
 

@@ -11,6 +11,7 @@ from mann import MANNModel
 from data_utils import load_evaluation_dataset
 from constants import *
 from hyper_params import *
+from utils import *
 
 tf.enable_eager_execution()
 
@@ -47,6 +48,17 @@ def evaluate():
 
     print()
     print("acc: {} ({} / {})".format(pass_cnt / total, pass_cnt, total))
+
+    # plot pie
+    n1 = pass_cnt
+    n2 = total - pass_cnt
+    p = plot_pie(
+        labels=[u'正确 ({})'.format(n1), u'错误 ({})'.format(n2)],
+        sizes=[n1, n2],
+        colors=['grey', 'black'],
+        explode=[0.1, 0]
+    )
+    p.show()
 
     return
 
